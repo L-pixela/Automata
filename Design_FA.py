@@ -78,7 +78,7 @@ class DFA:
             current_state = next_state
     return current_state in self.final_states
 
-  def draw_transition(self, filename="fa.gv"):
+  def draw_transition(self, filename="fa1.gv"):
     dot = graphviz.Digraph(comment=f"Transition diagram for DFA")
 
     # Add states as nodes with visual properties (optional)

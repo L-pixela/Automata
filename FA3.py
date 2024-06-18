@@ -80,8 +80,6 @@ class DFA:
 # Example usage
 dfa = DFA()
 
-
-
 dfa.get_user_input()
 
 string = input("Enter a string to simulate: ")
