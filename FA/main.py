@@ -18,6 +18,9 @@ if __name__ == "__main__":
         fa_type = "Non-Deterministic"
         short_fa = "NFA"
 
+    dot = automaton.to_dot()
+    dot.render('finite_automaton', format='png', view=True)
+
     print(f"Your FA Type is {fa_type}.")
     
     while True:
