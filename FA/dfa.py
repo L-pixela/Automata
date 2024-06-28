@@ -1,4 +1,6 @@
 from finiteAutomaton import FiniteAutomata
+from graphviz import Digraph
+
 
 class DFA(FiniteAutomata):
     def __init__(self, states=None, alphabet=None, transitions=None, initial_state=None, final_states=None):
@@ -25,8 +27,7 @@ class DFA(FiniteAutomata):
             current_state = next_state
         return current_state in self.final_states
     
-    def draw_transition(self, filename):
-        from graphviz import Digraph
+    def draw_transition(self, filename = "fa2.gv"):
         dot = Digraph()
 
         for state in self.states:
@@ -34,6 +35,7 @@ class DFA(FiniteAutomata):
                 dot.node(state, state, shape='doublecircle')
             else:
                 dot.node(state, state)
+
         dot.node('', '', shape='point')
         dot.edge('', self.initial_state)
 
@@ -42,3 +44,4 @@ class DFA(FiniteAutomata):
                 dot.edge(state, next_state, label=symbol)
 
         dot.render(filename, format='png', cleanup=True)
+
