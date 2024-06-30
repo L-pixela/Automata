@@ -8,6 +8,7 @@ class FiniteAutomata:
         self.transitions = {}
         self.initial_state = None
         self.final_states = set()
+
     # initialize the input element of the user
     def get_user_input(self):
         self._get_states()
@@ -15,6 +16,7 @@ class FiniteAutomata:
         self._get_transitions()
         self._get_initial_state()
         self._get_final_states()
+        
     # get number of states that user input 
     def _get_states(self):
         while True:
@@ -29,6 +31,7 @@ class FiniteAutomata:
         for i in range(num_states):
             state = input(f"Enter state {i + 1}: ")
             self.states.add(state)
+
     # Get user input of alphabet
     def _get_alphabet(self):
         while True:
@@ -38,6 +41,7 @@ class FiniteAutomata:
             else:
                 self.alphabet.update(alphabet_input)
                 break
+
     # Get user input of the initial state
     def _get_initial_state(self):
         while True:
@@ -47,6 +51,7 @@ class FiniteAutomata:
             else:
                 self.initial_state = initial_state
                 break
+
     # Get user input of the final state
     def _get_final_states(self):
         while True:
@@ -60,6 +65,7 @@ class FiniteAutomata:
                     else:
                         self.final_states.add(state)
                 break
+
     # Get user input of the transitions of the FA
     def _get_transitions(self):
         for state in self.states:
@@ -73,6 +79,7 @@ class FiniteAutomata:
                     else:
                         self.transitions[state][symbol] = set(next_states)
                         break
+
     # Testing if the FA Designed is Deterministic or Non-Determinsitic
     def is_deterministic(self):
         for state in self.transitions:
@@ -80,9 +87,15 @@ class FiniteAutomata:
                 if len(self.transitions[state][symbol]) > 1:
                     return False
         return True
+    
     # This simulate is raise to notify that the simulate method will be override by their subclasses (DFA or NFA) below
     def simulate(self, string):
         raise NotImplementedError("This method should be implemented by subclasses")
+    
+    def _state_to_string(self, state):
+        if isinstance(state, frozenset):
+            return ",".join(sorted(state))
+        return state
     # Function to visualize the FA with Transition using Graphviz dot
     def to_dot(self):
         
@@ -96,11 +109,19 @@ class FiniteAutomata:
             else:
                 dot.node(state, shape='circle') # If the normal states, It will draw circle
 
-        dot.edge('fake', self.initial_state)
+        # dot.edge('fake', self.initial_state)
+
+        # for state in self.transitions:
+        #     for symbol in self.transitions[state]:
+        #         for next_state in self.transitions[state][symbol]:
+        #             dot.edge(state, next_state, label=symbol)
+
+        dot.edge('fake', self._state_to_string(self.initial_state))
 
         for state in self.transitions:
+            state_str = self._state_to_string(state)
             for symbol in self.transitions[state]:
                 for next_state in self.transitions[state][symbol]:
-                    dot.edge(state, next_state, label=symbol)
+                    dot.edge(state_str, self._state_to_string(next_state), label=symbol)
 
         return dot

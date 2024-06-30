@@ -90,7 +90,7 @@ if __name__ == "__main__":
                     fa_type = "Deterministic"
                     fa_short = "DFA"
                 else:
-                    print("Please provide an NFA for conversion (Option 1).")
+                    print("Please provide an NFA for conversion.")
                 sleep(1)
 
             case '5':
@@ -107,6 +107,7 @@ if __name__ == "__main__":
             case '0':
                 print("Exiting...")
                 sleep(2)
+                os.system('cls')
                 break
 
             case _:
