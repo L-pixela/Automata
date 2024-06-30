@@ -86,10 +86,13 @@ class FiniteAutomata:
             return False
 
         for state in self.transitions:
-            for symbol in self.transitions[state]:
-                if len(self.transitions[state][symbol]) > 1:
+            for symbol in self.alphabet:
+                if symbol in self.transitions[state] and len(self.transitions[state][symbol]) > 1:
                     return False
+                
         return True
+
+
     # This simulate is raise to notify that the simulate method will be override by their subclasses (DFA or NFA) below
     def simulate(self, string):
         raise NotImplementedError("This method should be implemented by subclasses")

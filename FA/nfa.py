@@ -14,10 +14,9 @@ class NFA(FiniteAutomata):
                     if epsilon_state not in closure:
                         closure.add(epsilon_state)
                         stack.append(epsilon_state)
-        
         return frozenset(closure)
+
         
-    
     def simulate(self, string):
         current_states = self.epsilon_closure({self.initial_state})
         for symbol in string:
