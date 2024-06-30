@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     print("Minimized DFA.")
     print(automaton.transitions)
-    automaton.draw_transition()
+    print(automaton.hopcroft_minimization())
 
     # if fa_type == "Non-Deterministic":
     #     dfa = automaton.convert_to_dfa()

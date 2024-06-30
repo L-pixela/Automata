@@ -62,12 +62,11 @@ class DFA(FiniteAutomata):
 
         P = {frozenset(self.final_states), frozenset(self.states - self.final_states)}
 
-
         # partition
         W = {frozenset(self.final_states)}
-        #the final state
-        # for ex : q0q1q2
-        # p = q0q1, q2/ w= q2 which is final state
+        # the final state
+        # for example: q0q1q2
+        # p = q0q1, q2/ w = q2 which is final state
 
         while W:  # if W is not empty
             A = W.pop()  # pop W into A
@@ -94,19 +93,31 @@ class DFA(FiniteAutomata):
                 P = new_P
 
         new_states = {s: 'q' + str(i) for i, s in enumerate(P)}
-        initial_state = new_states[frozenset({self.initial_state})]
+        print(new_states)
+        # Find the initial state in the minimized DFA
+        initial_state = None
+        for state_set, state_name in new_states.items():
+            if self.initial_state in state_set:
+                initial_state = state_name
+                break
+        
+        if initial_state is None:
+            raise ValueError("Initial state not found in minimized DFA states.")
+
         final_states = {new_states[s] for s in P if s & self.final_states}
         new_transitions = {}
 
         for subset in P:
-            current_state = new_states[subset]
-            new_transitions[current_state] = {}
-            for q in subset:
-                for symbol, target_set in self.transitions[q].items():
-                    target_state = next(iter(target_set))  # Get the single target state from the set
-                    new_transitions[current_state][symbol] = new_states[frozenset({target_state})]
+                current_state = new_states[subset]
+                new_transitions[current_state] = {}
+                for q in subset:
+                    for symbol, target_set in self.transitions[q].items():
+                        target_state = next(iter(target_set))  # Get the single target state from the set
+                        for s, s_name in new_states.items():
+                            if target_state in s:
+                                new_transitions[current_state][symbol] = s_name
+                                break
 
+            
+        print("success")
         return DFA(new_states.values(), self.alphabet, new_transitions, initial_state, final_states)
-
-    # self class needs to be defined, possibly from previous code
-    # self should be an instance of this self class
