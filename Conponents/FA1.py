@@ -1,5 +1,3 @@
-from graphviz import Digraph
-
 class FiniteAutomata:
     # initialize the attributes
     def __init__(self):
@@ -38,11 +36,6 @@ class FiniteAutomata:
             else:
                 self.alphabet.update(alphabet_input)
                 break
-
-            # Ensure 'e' is included for epsilon transitions
-            if 'e' not in self.alphabet:
-                self.alphabet.add('e')
-        
     # Get user input of the initial state
     def _get_initial_state(self):
         while True:
@@ -65,17 +58,13 @@ class FiniteAutomata:
                     else:
                         self.final_states.add(state)
                 break
+    # Get user input of the transitions of the FA
     def _get_transitions(self):
         for state in self.states:
             self.transitions[state] = {}
             for symbol in self.alphabet:
                 while True:
-                    # Display 'epsilon' instead of '' for user clarity
-                    display_symbol = 'epsilon' if symbol == 'e' else symbol
-                    next_states = input(f"Enter next states for state '{state}' and symbol '{display_symbol}' (separated by spaces): ").split()
-                    if 'e' in next_states:
-                        next_states.remove('e')
-                        next_states.add('')  # Use '' internally to represent epsilon transitions
+                    next_states = input(f"Enter next states for state '{state}' and symbol '{symbol}' (separated by spaces): ").split()
                     valid = all(next_state in self.states for next_state in next_states)
                     if not valid:
                         print(f"Invalid states in {next_states}. Please enter valid states from {self.states}.")
@@ -84,38 +73,72 @@ class FiniteAutomata:
                         break
     # Testing if the FA Designed is Deterministic or Non-Determinsitic
     def is_deterministic(self):
-        if 'e' in self.alphabet:
-            return False
-
         for state in self.transitions:
-            for symbol in self.alphabet:
-                if symbol in self.transitions[state] and len(self.transitions[state][symbol]) > 1:
+            for symbol in self.transitions[state]:
+                if len(self.transitions[state][symbol]) > 1:
                     return False
-                
         return True
-
-
     # This simulate is raise to notify that the simulate method will be override by their subclasses (DFA or NFA) below
     def simulate(self, string):
         raise NotImplementedError("This method should be implemented by subclasses")
-    # Function to visualize the FA with Transition using Graphviz dot
-    def to_dot(self):
+
+# This class inherit from FiniteAutomata and simulate the result inputted by the user, If the inputted is DFA 
+class DFA(FiniteAutomata):
+    def simulate(self, string):
+        current_state = self.initial_state
+        for symbol in string:
+            if symbol not in self.alphabet:
+                return f"Invalid Alphabet: Symbol '{symbol}' not found in alphabet."
+            next_state = next(iter(self.transitions[current_state].get(symbol, set())))
+            if next_state is None:
+                return False  # No transition for current state and symbol
+            current_state = next_state
+        return current_state in self.final_states
+
+# This class inherit from FiniteAutomata and simulate the result inputted by the user, If the inputted is NFA
+class NFA(FiniteAutomata):
+    def simulate(self, string):
+        current_states = {self.initial_state}
+        for symbol in string:
+            if symbol not in self.alphabet:
+                return f"Invalid Alphabet: Symbol '{symbol}' not found in alphabet."
+            next_states = set()
+            for state in current_states:
+                next_states.update(self.transitions[state].get(symbol, set()))
+            if not next_states:
+                return False  # No transition for any current state and symbol
+            current_states = next_states
+        return any(state in self.final_states for state in current_states)
+
+
+if __name__ == "__main__":
+    fa = FiniteAutomata()
+    fa.get_user_input()
+
+    if fa.is_deterministic():
+        automaton = DFA()
+        automaton.__dict__.update(fa.__dict__)
+        fa_type = "Deterministic"
+        short_fa = "DFA"
+    else:
+        automaton = NFA()
+        automaton.__dict__.update(fa.__dict__)
+        fa_type = "Non-Deterministic"
+        short_fa = "NFA"
+
+    print(f"Your FA Type is {fa_type}.")
+    
+    while True:
         
-        dot = Digraph()
-        dot.attr(rankdir='LR', size='8,5')
-        # Condition where dot draw the states and transition
-        dot.node('fake', shape='point')
-        for state in self.states:
-            if state in self.final_states:
-                dot.node(state, shape='doublecircle') # If the states is final_States, It will draw double circle
+        string = input(f"Enter a string to simulate with the {fa_type} (enter 'exit' to quit): ")
+        if string.lower() == 'exit':
+            break
+        result = automaton.simulate(string)
+
+        if isinstance(result, str):
+            print(result)
+        else:
+            if result:
+                print(f"String '{string}' is accepted by the {short_fa}.")
             else:
-                dot.node(state, shape='circle') # If the normal states, It will draw circle
-
-        dot.edge('fake', self.initial_state)
-
-        for state in self.transitions:
-            for symbol in self.transitions[state]:
-                for next_state in self.transitions[state][symbol]:
-                    dot.edge(state, next_state, label=symbol)
-
-        return dot
+                print(f"String '{string}' is rejected by the {short_fa}.")
