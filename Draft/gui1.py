@@ -1,11 +1,11 @@
 import customtkinter as ctk
-from tkinter import messagebox, simpledialog
+from tkinter import simpledialog, Toplevel, Label, Button
 from PIL import Image, ImageTk
 import os
-import tempfile
-from FA5 import FiniteAutomata
-from NFA import NFA
-from DFA import DFA
+import datetime
+from FA import FiniteAutomata
+from NFA1 import NFA
+from DFA1 import DFA
 
 class FiniteAutomatonGUI:
     def __init__(self, root):
@@ -16,7 +16,6 @@ class FiniteAutomatonGUI:
         self.frame = ctk.CTkFrame(root)
         self.frame.pack(padx=20, pady=20)
 
-        # Create widgets for input
         ctk.CTkLabel(self.frame, text="Number of States:").grid(row=0, column=0)
         self.num_states_entry = ctk.CTkEntry(self.frame)
         self.num_states_entry.grid(row=0, column=1)
@@ -33,20 +32,15 @@ class FiniteAutomatonGUI:
         self.final_states_entry = ctk.CTkEntry(self.frame)
         self.final_states_entry.grid(row=3, column=1)
 
-        ctk.CTkLabel(self.frame, text="Transitions: (format: state symbol next_state)").grid(row=4, column=0)
+        ctk.CTkLabel(self.frame, text="Transitions: (format: state symbol next_state1,next_state2,...)").grid(row=4, column=0)
         self.transitions_text = ctk.CTkTextbox(self.frame, width=300, height=100)
         self.transitions_text.grid(row=4, column=1)
 
-        # Create buttons
         ctk.CTkButton(self.frame, text="Create FA", command=self.create_fa).grid(row=5, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Check Determinism", command=self.check_determinism).grid(row=6, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Check String Acceptance", command=self.check_string_acceptance).grid(row=7, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Convert to DFA", command=self.convert_to_dfa).grid(row=8, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Minimize DFA", command=self.minimize_dfa).grid(row=9, column=0, columnspan=2)
-
-        # Image display for visualization
-        self.image_label = ctk.CTkLabel(self.frame)
-        self.image_label.grid(row=10, column=0, columnspan=2, pady=10)
 
     def create_fa(self):
         try:
@@ -67,37 +61,33 @@ class FiniteAutomatonGUI:
             transitions_input = self.transitions_text.get("1.0", "end").strip().split("\n")
             for transition in transitions_input:
                 try:
-                    state, symbol, next_state = transition.split()
+                    state, symbol, next_states = transition.split()
+                    next_states = next_states.split(',')
                 except ValueError:
-                    messagebox.showerror("Error", f"Invalid transition format: '{transition}'")
+                    self.show_custom_message("Error", f"Invalid transition format: '{transition}'")
                     return
 
-                if state not in transitions:
-                    messagebox.showerror("Error", f"Invalid state: '{state}'")
+                if state not in states:
+                    self.show_custom_message("Error", f"Invalid state: '{state}'")
                     return
-                if symbol not in alphabet:
-                    messagebox.showerror("Error", f"Invalid symbol: '{symbol}'")
+                if symbol not in alphabet and symbol != 'e':
+                    self.show_custom_message("Error", f"Invalid symbol: '{symbol}'")
                     return
-                if next_state not in states:
-                    messagebox.showerror("Error", f"Invalid next state: '{next_state}'")
+                if any(next_state not in states for next_state in next_states):
+                    self.show_custom_message("Error", f"Invalid next state(s): '{','.join(next_states)}'")
                     return
 
                 if symbol not in transitions[state]:
                     transitions[state][symbol] = set()
-                transitions[state][symbol].add(next_state)
+                transitions[state][symbol].update(next_states)
 
-            self.fa = FiniteAutomata()
-            self.fa.states = set(states)
-            self.fa.alphabet = alphabet
-            self.fa.transitions = transitions
-            self.fa.initial_state = initial_state
-            self.fa.final_states = final_states
+            self.fa = FiniteAutomata(states=set(states), alphabet=alphabet, transitions=transitions, initial_state=initial_state, final_states=final_states)
 
-            messagebox.showinfo("Success", "Finite Automaton created successfully.")
+            self.show_custom_message("Success", "Finite Automaton created successfully.")
             self.visualize_fa()
 
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to create Finite Automaton: {str(e)}")
+            self.show_custom_message("Error", f"Failed to create Finite Automaton: {str(e)}")
 
     def check_determinism(self):
         try:
@@ -105,11 +95,11 @@ class FiniteAutomatonGUI:
                 is_deterministic = self.fa.is_deterministic()
                 self.fa_type = "DFA" if is_deterministic else "NFA"
                 result_text = f"The FA is {self.fa_type}."
-                messagebox.showinfo("Determinism Check", result_text)
+                self.show_custom_message("Determinism Check", result_text)
             else:
-                messagebox.showerror("Error", "Create FA first.")
+                self.show_custom_message("Error", "Create FA first.")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to check determinism: {str(e)}")
+            self.show_custom_message("Error", f"Failed to check determinism: {str(e)}")
 
     def check_string_acceptance(self):
         try:
@@ -117,70 +107,82 @@ class FiniteAutomatonGUI:
                 input_string = simpledialog.askstring("Input", "Enter a string:")
                 if input_string is not None:
                     if self.fa_type == "DFA":
-                        automaton = DFA()
+                        automaton = DFA(states=self.fa.states, alphabet=self.fa.alphabet, transitions=self.fa.transitions, initial_state=self.fa.initial_state, final_states=self.fa.final_states)
                     else:
-                        automaton = NFA()
-                    automaton.__dict__.update(self.fa.__dict__)
+                        automaton = NFA(states=self.fa.states, alphabet=self.fa.alphabet, transitions=self.fa.transitions, initial_state=self.fa.initial_state, final_states=self.fa.final_states)
                     is_accepted = automaton.simulate(input_string)
                     result_text = f"The string '{input_string}' is accepted." if is_accepted else f"The string '{input_string}' is not accepted."
-                    messagebox.showinfo("String Acceptance Check", result_text)
+                    self.show_custom_message("String Acceptance Check", result_text)
             else:
-                messagebox.showerror("Error", "Create FA first.")
+                self.show_custom_message("Error", "Create FA first.")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to check string acceptance: {str(e)}")
+            self.show_custom_message("Error", f"Failed to check string acceptance: {str(e)}")
 
     def convert_to_dfa(self):
         try:
             if self.fa_type == "NFA":
-                nfa = NFA()
-                nfa.__dict__.update(self.fa.__dict__)
+                nfa = NFA(states=self.fa.states, alphabet=self.fa.alphabet, transitions=self.fa.transitions, initial_state=self.fa.initial_state, final_states=self.fa.final_states)
                 dfa = nfa.convert_to_dfa()
                 self.fa = dfa
                 self.fa_type = "DFA"
-                messagebox.showinfo("Conversion to DFA", "NFA converted to DFA successfully.")
-                self.visualize_fa()
+                self.show_custom_message("Conversion to DFA", "NFA converted to DFA successfully.")
+                self.visualize_converted_fa()
+                # self.visualize_fa()
             else:
-                messagebox.showinfo("Conversion to DFA", "Already a DFA or no FA created.")
+                self.show_custom_message("Conversion to DFA", "Already a DFA or no FA created.")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to convert to DFA: {str(e)}")
+            self.show_custom_message("Error", f"Failed to convert to DFA: {str(e)}")
 
     def minimize_dfa(self):
         try:
             if self.fa_type == "DFA":
-                dfa = DFA()
-                dfa.__dict__.update(self.fa.__dict__)
+                dfa = DFA(states=self.fa.states, alphabet=self.fa.alphabet, transitions=self.fa.transitions, initial_state=self.fa.initial_state, final_states=self.fa.final_states)
                 dfa.minimize()
                 self.fa = dfa
-                messagebox.showinfo("Minimization", "DFA minimized successfully.")
-                self.visualize_fa()
+                self.show_custom_message("Minimization", "DFA minimized successfully.")
+                # self.visualize_fa()
+                self.visualize_converted_fa()
             else:
-                messagebox.showerror("Error", "Provide a DFA.")
+                self.show_custom_message("Error", "Provide a DFA.")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to minimize DFA: {str(e)}")
+            self.show_custom_message("Error", f"Failed to minimize DFA: {str(e)}")
 
     def visualize_fa(self):
         try:
+            output_dir = "fa_images"
+            os.makedirs(output_dir, exist_ok=True)
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = os.path.join(output_dir, f"finite_automaton_{timestamp}.png")
+
             dot = self.fa.to_dot()
-
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
-                dot.render(temp_file.name, format='png')
-                temp_file.close()
-                img = Image.open(temp_file.name)
-                img = img.resize((400, 400), Image.ANTIALIAS)
-                img = ImageTk.PhotoImage(img)
-
-            self.image_label.configure(image=img)
-            self.image_label.image = img  # Keep a reference to avoid garbage collection
-
-            # Remove the temporary file after use
-            os.remove(temp_file.name)
+            dot.render(output_path, format='png', view=True)
 
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to visualize FA: {str(e)}")
+            self.show_custom_message("Error", f"Failed to visualize FA: {str(e)}")
 
-# Main GUI setup
+    def visualize_converted_fa(self):
+        try:
+            output_dir = "fa_images"
+            os.makedirs(output_dir, exist_ok=True)
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = os.path.join(output_dir, f"finite_automaton_{timestamp}.png")
+
+            dot = self.fa.draw_transition()
+            dot.render(output_path, format='png', view=True)
+
+        except Exception as e:
+            self.show_custom_message("Error", f"Failed to visualize FA: {str(e)}")
+
+    def show_custom_message(self, title, message):
+        popup = Toplevel(self.root)
+        popup.title(title)
+        popup.geometry("350x200")
+        custom_font = ("Arial", 12)
+        Label(popup, text=message, wraplength=250, font=custom_font).pack(pady=20)
+        Button(popup, text="OK", width=10, height=2, font=custom_font, command=popup.destroy).pack(pady=20)
+
 if __name__ == "__main__":
     root = ctk.CTk()
-    root.title("Finite Automaton GUI")
+    root.title("Finite Automaton")
     app = FiniteAutomatonGUI(root)
     root.mainloop()
