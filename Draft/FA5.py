@@ -2,12 +2,18 @@ from graphviz import Digraph
 
 class FiniteAutomata:
     # initialize the attributes
-    def __init__(self):
-        self.states = set()
-        self.alphabet = set()
-        self.transitions = {}
-        self.initial_state = None
-        self.final_states = set()
+    def __init__(self, states=None, alphabet=None, transitions=None, initial_state=None, final_states=None):
+        self.states = states or set()
+        self.alphabet = alphabet or set()
+        self.transitions = transitions or {}
+        self.initial_state = initial_state
+        self.final_states = final_states or set()
+    # def __init__(self):
+    #     self.states = set()
+    #     self.alphabet = set()
+    #     self.transitions = {}
+    #     self.initial_state = None
+    #     self.final_states = set()
 
     # initialize the input element of the user
     def get_user_input(self):
@@ -72,16 +78,35 @@ class FiniteAutomata:
             self.transitions[state] = {}
             for symbol in self.alphabet:
                 while True:
-                    next_states = input(f"Enter next states for state '{state}' and symbol '{symbol}' (separated by spaces): ").split()
+                    # Display 'epsilon' instead of '' for user clarity
+                    display_symbol = 'epsilon' if symbol == 'e' else symbol
+                    next_states = input(f"Enter next states for state '{state}' and symbol '{display_symbol}' (separated by spaces): ").split()
+                    if 'e' in next_states:
+                        next_states.remove('e')
+                        next_states.add('')  # Use '' internally to represent epsilon transitions
                     valid = all(next_state in self.states for next_state in next_states)
                     if not valid:
                         print(f"Invalid states in {next_states}. Please enter valid states from {self.states}.")
                     else:
                         self.transitions[state][symbol] = set(next_states)
                         break
+        # for state in self.states:
+        #     self.transitions[state] = {}
+        #     for symbol in self.alphabet:
+        #         while True:
+        #             next_states = input(f"Enter next states for state '{state}' and symbol '{symbol}' (separated by spaces): ").split()
+        #             valid = all(next_state in self.states for next_state in next_states)
+        #             if not valid:
+        #                 print(f"Invalid states in {next_states}. Please enter valid states from {self.states}.")
+        #             else:
+        #                 self.transitions[state][symbol] = set(next_states)
+        #                 break
 
     # Testing if the FA Designed is Deterministic or Non-Determinsitic
     def is_deterministic(self):
+        if 'e' in self.alphabet:
+            return False
+        
         for state in self.transitions:
             for symbol in self.transitions[state]:
                 if len(self.transitions[state][symbol]) > 1:
@@ -125,3 +150,29 @@ class FiniteAutomata:
                     dot.edge(state_str, self._state_to_string(next_state), label=symbol)
 
         return dot
+    
+    # def to_dot(self):
+
+    #     dot = Digraph()
+    #     dot.attr(rankdir='LR', size='8,5')
+
+    #     # Add nodes for all states
+    #     for state in self.states:
+    #         if state == self.initial_state:
+    #             dot.node(state, state, shape='doublecircle' if state in self.final_states else 'circle', peripheries='2')
+    #         else:
+    #             dot.node(state, state, shape='doublecircle' if state in self.final_states else 'circle')
+
+    #     # Add a point node for initial transition
+    #     dot.node('', '', shape='point')
+    #     dot.edge('', self.initial_state)
+
+    #     # Add edges for transitions
+    #     for state in self.transitions:
+    #         state_str = self._state_to_string(state)
+    #         for symbol in self.transitions[state]:
+    #             for next_state in self.transitions[state][symbol]:
+    #                 dot.edge(state_str, self._state_to_string(next_state), label=str(symbol))
+
+
+    #     return dot

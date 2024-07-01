@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import simpledialog, Toplevel, Label, Button
 from PIL import Image, ImageTk
 import os
+import datetime
 from FA5 import FiniteAutomata
 from NFA import NFA
 from DFA import DFA
@@ -32,54 +33,56 @@ class FiniteAutomatonGUI:
         self.final_states_entry = ctk.CTkEntry(self.frame)
         self.final_states_entry.grid(row=3, column=1)
 
-        ctk.CTkLabel(self.frame, text="Transitions: (format: state symbol next_state)").grid(row=4, column=0)
+        ctk.CTkLabel(self.frame, text="Transitions: (format: state symbol next_state1,next_state2,...)").grid(row=4, column=0)
         self.transitions_text = ctk.CTkTextbox(self.frame, width=300, height=100)
         self.transitions_text.grid(row=4, column=1)
 
         # Create buttons
         ctk.CTkButton(self.frame, text="Create FA", command=self.create_fa).grid(row=5, column=0, columnspan=2)
-        ctk.CTkButton(self.frame, text="Check Determinism", command=self.check_determinism).grid(row=6, column=0, columnspan=2)
+        ctk.CTkButton(self.frame, text="Check Determinisic or not", command=self.check_determinism).grid(row=6, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Check String Acceptance", command=self.check_string_acceptance).grid(row=7, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Convert to DFA", command=self.convert_to_dfa).grid(row=8, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Minimize DFA", command=self.minimize_dfa).grid(row=9, column=0, columnspan=2)
 
     def create_fa(self):
+
         try:
-            num_states = int(self.num_states_entry.get())
-            states = [f"q{i}" for i in range(num_states)]
+            num_states = int(self.num_states_entry.get()) #input number states
+            states = [f"q{i}" for i in range(num_states)] #making states for the number states input using loop
 
-            alphabet = set(self.alphabet_entry.get().split())
-            initial_state = self.initial_state_entry.get()
+            alphabet = set(self.alphabet_entry.get().split()) #input alphabet and the input are split by space
+            initial_state = self.initial_state_entry.get() # get the input of initial_state
 
-            final_states = set(self.final_states_entry.get().split())
-
+            final_states = set(self.final_states_entry.get().split()) # input of final_states, multiple final_states are split by space
+            # transition validating the transition input with the input above like states, alphabet, init and final states
             transitions = {}
             for state in states:
                 transitions[state] = {}
                 for symbol in alphabet:
-                    transitions[state][symbol] = set()
-
+                    transitions[state][symbol] = set()# putting it in a set
+            # input of transition split by going to another row and taking the input with format of state,symbol,next_states spliting by space
             transitions_input = self.transitions_text.get("1.0", "end").strip().split("\n")
             for transition in transitions_input:
                 try:
-                    state, symbol, next_state = transition.split()
+                    state, symbol, next_states = transition.split()
+                    next_states = next_states.split(',')
                 except ValueError:
                     self.show_custom_message("Error", f"Invalid transition format: '{transition}'")
                     return
 
-                if state not in transitions:
+                if state not in states:
                     self.show_custom_message("Error", f"Invalid state: '{state}'")
                     return
-                if symbol not in alphabet:
+                if symbol not in alphabet and symbol != 'e':
                     self.show_custom_message("Error", f"Invalid symbol: '{symbol}'")
                     return
-                if next_state not in states:
-                    self.show_custom_message("Error", f"Invalid next state: '{next_state}'")
+                if any(next_state not in states for next_state in next_states):
+                    self.show_custom_message("Error", f"Invalid next state(s): '{','.join(next_states)}'")
                     return
 
                 if symbol not in transitions[state]:
                     transitions[state][symbol] = set()
-                transitions[state][symbol].add(next_state)
+                transitions[state][symbol].update(next_states)
 
             self.fa = FiniteAutomata()
             self.fa.states = set(states)
@@ -94,13 +97,63 @@ class FiniteAutomatonGUI:
         except Exception as e:
             self.show_custom_message("Error", f"Failed to create Finite Automaton: {str(e)}")
 
+        # try:
+        #     num_states = int(self.num_states_entry.get()) #input number states
+        #     states = [f"q{i}" for i in range(num_states)] #making states for the number states input using loop
+
+        #     alphabet = set(self.alphabet_entry.get().split()) #input alphabet and the input are split by space
+        #     initial_state = self.initial_state_entry.get() # get the input of initial_state
+
+        #     final_states = set(self.final_states_entry.get().split()) # input of final_states, multiple final_states are split by space
+        #     # transition validating the transition input with the input above like states, alphabet, init and final states
+        #     transitions = {}
+        #     for state in states:
+        #         transitions[state] = {}
+        #         for symbol in alphabet:
+        #             transitions[state][symbol] = set() # putting it in a set
+        #     # input of transition split by going to another row and taking the input with format of state,symbol,next_states spliting by space
+        #     transitions_input = self.transitions_text.get("1.0", "end").strip().split("\n")
+        #     for transition in transitions_input:
+        #         try:
+        #             state, symbol, next_state = transition.split()
+        #         except ValueError:
+        #             self.show_custom_message("Error", f"Invalid transition format: '{transition}'")
+        #             return
+
+        #         if state not in transitions:
+        #             self.show_custom_message("Error", f"Invalid state: '{state}'")
+        #             return
+        #         if symbol not in alphabet:
+        #             self.show_custom_message("Error", f"Invalid symbol: '{symbol}'")
+        #             return
+        #         if next_state not in states:
+        #             self.show_custom_message("Error", f"Invalid next state: '{next_state}'")
+        #             return
+
+        #         if symbol not in transitions[state]:
+        #             transitions[state][symbol] = set()
+        #         transitions[state][symbol].add(next_state)
+
+        #     self.fa = FiniteAutomata()
+        #     self.fa.states = set(states)
+        #     self.fa.alphabet = alphabet
+        #     self.fa.transitions = transitions
+        #     self.fa.initial_state = initial_state
+        #     self.fa.final_states = final_states
+
+        #     self.show_custom_message("Success", "Finite Automaton created successfully.")
+        #     self.visualize_fa()
+
+        # except Exception as e:
+        #     self.show_custom_message("Error", f"Failed to create Finite Automaton: {str(e)}")
+
     def check_determinism(self):
         try:
             if self.fa:
                 is_deterministic = self.fa.is_deterministic()
                 self.fa_type = "DFA" if is_deterministic else "NFA"
                 result_text = f"The FA is {self.fa_type}."
-                self.show_custom_message("Determinism Check", result_text)
+                self.show_custom_message("Deterministic or not Check", result_text)
             else:
                 self.show_custom_message("Error", "Create FA first.")
         except Exception as e:
@@ -132,6 +185,10 @@ class FiniteAutomatonGUI:
                 dfa = nfa.convert_to_dfa()
                 self.fa = dfa
                 self.fa_type = "DFA"
+                print("DFA Transitions:")
+                for state, transitions in dfa.transitions.items():
+                    for symbol, next_state in transitions.items():
+                        print(f"Transition: {state} --[{symbol}]--> {next_state}")
                 self.show_custom_message("Conversion to DFA", "NFA converted to DFA successfully.")
                 self.visualize_fa()
             else:
@@ -146,6 +203,10 @@ class FiniteAutomatonGUI:
                 dfa.__dict__.update(self.fa.__dict__)
                 dfa.minimize()
                 self.fa = dfa
+                print("DFA Transitions:")
+                for state, transitions in dfa.transitions.items():
+                    for symbol, next_state in transitions.items():
+                        print(f"Transition: {state} --[{symbol}]--> {next_state}")
                 self.show_custom_message("Minimization", "DFA minimized successfully.")
                 self.visualize_fa()
             else:
@@ -157,8 +218,9 @@ class FiniteAutomatonGUI:
         try:
             output_dir = "fa_images"
             os.makedirs(output_dir, exist_ok=True)
-            output_path = os.path.join(output_dir, "finite_automaton.png")
-
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = os.path.join(output_dir, f"finite_automaton_{timestamp}.png")
+            
             dot = self.fa.to_dot()
             dot.render(output_path, format='png', view=True)
 

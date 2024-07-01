@@ -1,6 +1,20 @@
 from FA5 import FiniteAutomata
+from graphviz import Digraph
 
 class DFA(FiniteAutomata):
+
+    def __init__(self, states=None, alphabet=None, transitions=None, initial_state=None, final_states=None):
+        super().__init__()
+        if states is not None:
+            self.states = states
+        if alphabet is not None:
+            self.alphabet = alphabet
+        if transitions is not None:
+            self.transitions = transitions
+        if initial_state is not None:
+            self.initial_state = initial_state
+        if final_states is not None:
+            self.final_states = final_states
 
     def simulate(self, string):
         current_state = self.initial_state
