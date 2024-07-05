@@ -116,7 +116,7 @@ class FiniteAutomata:
                 # Add nodes for all states
                 for state in self.states:
                     if state == self.initial_state:
-                        dot.node(state, state, shape='doublecircle' if state in self.final_states else 'circle', peripheries='2')
+                        dot.node(state, state, shape='doublecircle' if state in self.final_states else 'circle')
                     else:
                         dot.node(state, state, shape='doublecircle' if state in self.final_states else 'circle')
 
