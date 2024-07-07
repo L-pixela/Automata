@@ -9,6 +9,7 @@ from dfa import DFA
 
 class FiniteAutomatonGUI:
     def __init__(self, root):
+        # Initialize the GUI and create input fields and buttons
         self.root = root
         self.fa = None
         self.fa_type = None
@@ -43,6 +44,7 @@ class FiniteAutomatonGUI:
         ctk.CTkButton(self.frame, text="Minimize DFA", command=self.minimize_dfa).grid(row=9, column=0, columnspan=2)
 
     def create_fa(self):
+        # Create the finite automaton based on user input
         try:
             num_states = int(self.num_states_entry.get())
             states = [f"q{i}" for i in range(num_states)]
@@ -90,6 +92,7 @@ class FiniteAutomatonGUI:
             self.show_custom_message("Error", f"Failed to create Finite Automaton: {str(e)}")
 
     def check_determinism(self):
+        # Check if the finite automaton is deterministic or not
         try:
             if self.fa:
                 is_deterministic = self.fa.is_deterministic()
@@ -102,10 +105,17 @@ class FiniteAutomatonGUI:
             self.show_custom_message("Error", f"Failed to check determinism: {str(e)}")
 
     def check_string_acceptance(self):
+        # Check if a given string is accepted by the finite automaton
         try:
             if self.fa:
                 input_string = simpledialog.askstring("Input", "Enter a string:")
                 if input_string is not None:
+                    # Validate the input string
+                    if any(symbol not in self.fa.alphabet for symbol in input_string):
+                        invalid_symbols = [symbol for symbol in input_string if symbol not in self.fa.alphabet]
+                        self.show_custom_message("Error", f"Invalid string: Symbols '{', '.join(invalid_symbols)}' not found in alphabet.")
+                        return
+
                     if self.fa_type == "DFA":
                         automaton = DFA(states=self.fa.states, alphabet=self.fa.alphabet, transitions=self.fa.transitions, initial_state=self.fa.initial_state, final_states=self.fa.final_states)
                     else:
@@ -119,6 +129,7 @@ class FiniteAutomatonGUI:
             self.show_custom_message("Error", f"Failed to check string acceptance: {str(e)}")
 
     def convert_to_dfa(self):
+        # Convert the NFA to a DFA
         try:
             if self.fa_type == "NFA":
                 nfa = NFA(states=self.fa.states, alphabet=self.fa.alphabet, transitions=self.fa.transitions, initial_state=self.fa.initial_state, final_states=self.fa.final_states)
@@ -127,20 +138,19 @@ class FiniteAutomatonGUI:
                 self.fa_type = "DFA"
                 self.show_custom_message("Conversion to DFA", "NFA converted to DFA successfully.")
                 self.visualize_converted_fa()
-                # self.visualize_fa()
             else:
                 self.show_custom_message("Conversion to DFA", "Already a DFA or no FA created.")
         except Exception as e:
             self.show_custom_message("Error", f"Failed to convert to DFA: {str(e)}")
 
     def minimize_dfa(self):
+        # Minimize the DFA
         try:
             if self.fa_type == "DFA":
                 dfa = DFA(states=self.fa.states, alphabet=self.fa.alphabet, transitions=self.fa.transitions, initial_state=self.fa.initial_state, final_states=self.fa.final_states)
                 dfa.minimize()
                 self.fa = dfa
                 self.show_custom_message("Minimization", "DFA minimized successfully.")
-                # self.visualize_fa()
                 self.visualize_converted_fa()
             else:
                 self.show_custom_message("Error", "Provide a DFA.")
@@ -148,6 +158,7 @@ class FiniteAutomatonGUI:
             self.show_custom_message("Error", f"Failed to minimize DFA: {str(e)}")
 
     def visualize_fa(self):
+        # Visualize the finite automaton using Graphviz
         try:
             output_dir = "fa_images"
             os.makedirs(output_dir, exist_ok=True)
@@ -161,6 +172,7 @@ class FiniteAutomatonGUI:
             self.show_custom_message("Error", f"Failed to visualize FA: {str(e)}")
 
     def visualize_converted_fa(self):
+        # Visualize the converted finite automaton using Graphviz
         try:
             output_dir = "fa_images"
             os.makedirs(output_dir, exist_ok=True)
@@ -174,6 +186,7 @@ class FiniteAutomatonGUI:
             self.show_custom_message("Error", f"Failed to visualize FA: {str(e)}")
 
     def show_custom_message(self, title, message):
+        # Display a custom message popup
         popup = Toplevel(self.root)
         popup.title(title)
         popup.geometry("350x200")
@@ -182,6 +195,7 @@ class FiniteAutomatonGUI:
         Button(popup, text="OK", width=10, height=2, font=custom_font, command=popup.destroy).pack(pady=20)
 
 # if __name__ == "__main__":
+#     # Create the main window and start the GUI
 #     root = ctk.CTk()
 #     root.title("Finite Automaton")
 #     app = FiniteAutomatonGUI(root)
