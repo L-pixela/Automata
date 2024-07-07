@@ -37,6 +37,12 @@ class FiniteAutomata:
                 self.alphabet.update(alphabet_input)
                 break
 
+
+            # Ensure 'e' is included for epsilon transitions
+            if 'e' not in self.alphabet:
+                self.alphabet.add('e')
+        
+    # Get user input of the initial state
     def _get_initial_state(self):
         while True:
             initial_state = input("Enter the initial state: ")
@@ -69,6 +75,12 @@ class FiniteAutomata:
                     if 'e' in next_states:
                         next_states.remove('e')
                         next_states.add('')
+                    # Display 'epsilon' instead of '' for user clarity
+                    display_symbol = 'epsilon' if symbol == 'e' else symbol
+                    next_states = input(f"Enter next states for state '{state}' and symbol '{display_symbol}' (separated by spaces): ").split()
+                    if 'e' in next_states:
+                        next_states.remove('e')
+                        next_states.add('')  # Use '' internally to represent epsilon transitions
                     valid = all(next_state in self.states for next_state in next_states)
                     if not valid:
                         print(f"Invalid states in {next_states}. Please enter valid states from {self.states}.")
@@ -79,12 +91,19 @@ class FiniteAutomata:
     def is_deterministic(self):
         if 'e' in self.alphabet:
             return False
+        if 'e' in self.alphabet:
+            return False
+
         for state in self.transitions:
-            for symbol in self.transitions[state]:
-                if len(self.transitions[state][symbol]) > 1:
+            for symbol in self.alphabet:
+                if symbol in self.transitions[state] and len(self.transitions[state][symbol]) > 1:
                     return False
+                
         return True
 
+
+
+    # This simulate is raise to notify that the simulate method will be override by their subclasses (DFA or NFA) below
     def simulate(self, string):
         raise NotImplementedError("This method should be implemented by subclasses")
 
