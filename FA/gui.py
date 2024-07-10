@@ -16,7 +16,7 @@ class FiniteAutomatonGUI:
 
         self.frame = ctk.CTkFrame(root)
         self.frame.pack(padx=20, pady=20)
-
+        # GUI Design
         ctk.CTkLabel(self.frame, text="Number of States:").grid(row=0, column=0)
         self.num_states_entry = ctk.CTkEntry(self.frame)
         self.num_states_entry.grid(row=0, column=1)
@@ -36,7 +36,7 @@ class FiniteAutomatonGUI:
         ctk.CTkLabel(self.frame, text="Transitions: (format: state symbol next_state1,next_state2,...)").grid(row=4, column=0)
         self.transitions_text = ctk.CTkTextbox(self.frame, width=300, height=100)
         self.transitions_text.grid(row=4, column=1)
-
+        # Connecting the GUI input with functions
         ctk.CTkButton(self.frame, text="Create FA", command=self.create_fa).grid(row=5, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Check Determinism", command=self.check_determinism).grid(row=6, column=0, columnspan=2)
         ctk.CTkButton(self.frame, text="Check String Acceptance", command=self.check_string_acceptance).grid(row=7, column=0, columnspan=2)

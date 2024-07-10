@@ -1,20 +1,21 @@
 from graphviz import Digraph
 
 class FiniteAutomata:
+    # initializing the states,alphabet, transitions, initial_state, and final_states
     def __init__(self, states=None, alphabet=None, transitions=None, initial_state=None, final_states=None):
         self.states = states or set()
         self.alphabet = alphabet or set()
         self.transitions = transitions or {}
         self.initial_state = initial_state
         self.final_states = final_states or set()
-
+    # Initializing the functions of getting the user input
     def get_user_input(self):
         self._get_states()
         self._get_alphabet()
         self._get_transitions()
         self._get_initial_state()
         self._get_final_states()
-
+    # getting states input function
     def _get_states(self):
         while True:
             try:
@@ -27,7 +28,7 @@ class FiniteAutomata:
         for i in range(num_states):
             state = input(f"Enter state {i + 1}: ")
             self.states.add(state)
-
+    # getting alphabet input function
     def _get_alphabet(self):
         while True:
             alphabet_input = input("Enter the alphabet symbols (separated by spaces): ").split()
@@ -36,7 +37,7 @@ class FiniteAutomata:
             else:
                 self.alphabet.update(alphabet_input)
                 break
-
+    # getting initial states input function 
     def _get_initial_state(self):
         while True:
             initial_state = input("Enter the initial state: ")
@@ -45,7 +46,7 @@ class FiniteAutomata:
             else:
                 self.initial_state = initial_state
                 break
-
+    # getting final states input function
     def _get_final_states(self):
         while True:
             final_state_input = input("Enter final states (separated by spaces): ").split()
@@ -58,7 +59,7 @@ class FiniteAutomata:
                     else:
                         self.final_states.add(state)
                 break
-
+    # getting transitions input function
     def _get_transitions(self):
         for state in self.states:
             self.transitions[state] = {}
@@ -75,7 +76,7 @@ class FiniteAutomata:
                     else:
                         self.transitions[state][symbol] = set(next_states)
                         break
-
+    # Testing if the FA is deterministic or not function
     def is_deterministic(self):
         if 'e' in self.alphabet:
             return False
@@ -84,15 +85,15 @@ class FiniteAutomata:
                 if len(self.transitions[state][symbol]) > 1:
                     return False
         return True
-
+    # Testing the string of the FA if it is deterministic, it will simulate as dfa else nfa
     def simulate(self, string):
         raise NotImplementedError("This method should be implemented by subclasses")
-
+    # for converting state to string when we want to draw the graphviz
     def _state_to_string(self, state):
         if isinstance(state, frozenset):
             return ",".join(sorted(state))
         return state
-
+    # function for drawing the FA and visualizing it 
     def to_dot(self):
         dot = Digraph()
         dot.attr(rankdir='LR', size='8,5')
@@ -109,7 +110,7 @@ class FiniteAutomata:
                 for next_state in self.transitions[state][symbol]:
                     dot.edge(state_str, self._state_to_string(next_state), label=symbol)
         return dot
-
+    # function for drawing the FA when FA is converted or minimized
     def draw_transition(self):
                 dot = Digraph()
 
